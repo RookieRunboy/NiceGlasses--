@@ -1,0 +1,5 @@
+{
+  "name": "OptiMeasure AI",
+  "description": "A professional tool to measure pupil height using a photo and reference frame height. Features AI-powered landmark detection and precise manual adjustment tools.",
+  "requestFramePermissions": []
+}
