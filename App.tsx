@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import MeasurementWorkspace from './components/MeasurementWorkspace';
 import Sidebar from './components/Sidebar';
@@ -10,8 +11,13 @@ const App: React.FC = () => {
   
   // History State
   const [history, setHistory] = useState<HistoryRecord[]>(() => {
-    const saved = localStorage.getItem('opti_history');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('opti_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to parse history", e);
+      return [];
+    }
   });
 
   // Initial markers placed somewhat centrally
@@ -35,7 +41,8 @@ const App: React.FC = () => {
       patientName: patientName || 'Anonymous',
       leftPupilHeightMm: result.leftPupilHeightMm,
       rightPupilHeightMm: result.rightPupilHeightMm,
-      frameHeightMm: frameHeightMm
+      frameHeightMm: frameHeightMm,
+      pupilDistanceMm: result.pupilDistanceMm
     };
     setHistory(prev => [newRecord, ...prev]);
   };
@@ -66,10 +73,7 @@ const App: React.FC = () => {
     const cx = 0.5;
     const cy = 0.5;
     
-    // Aspect ratio correction is needed because rotation happens in pixel space (or square space), 
-    // but our coordinates are normalized (0-1).
-    // Let's project to Pixel Space, Rotate, then Project back? 
-    // Or just work in relative space correcting for aspect ratio.
+    // Aspect ratio correction is needed because rotation happens in pixel space.
     const aspect = imageDims.aspectRatio;
 
     const getRotatedY = (p: {x: number, y: number}) => {
@@ -95,18 +99,31 @@ const App: React.FC = () => {
     
     // Ratio: Frame Height (0-1 units) / Real MM
     const unitsPerMm = relativeFrameHeight / frameHeightMm;
+    const pixelsPerMm = (relativeFrameHeight * imageDims.height) / frameHeightMm;
 
     // Pupil Height = Distance from Bottom Line to Pupil Y (in Ruler Space)
     // Note: Y increases downwards. So Bottom Y > Top Y.
     // Height is (BottomY - PupilY)
-    
     const leftHeightUnits = measurements.frameBottomY - leftPupilY_Rotated;
     const rightHeightUnits = measurements.frameBottomY - rightPupilY_Rotated;
 
+    // Pupil Distance (PD) Calculation
+    // We calculate the Euclidean distance between pupils in pixel space.
+    // Assuming the face is roughly parallel to the camera sensor (orthogonal),
+    // and the rotation corrects for head tilt (roll).
+    // Distance is invariant to rotation.
+    const leftPx = { x: measurements.leftPupil.x * imageDims.width, y: measurements.leftPupil.y * imageDims.height };
+    const rightPx = { x: measurements.rightPupil.x * imageDims.width, y: measurements.rightPupil.y * imageDims.height };
+    
+    const dx = leftPx.x - rightPx.x;
+    const dy = leftPx.y - rightPx.y;
+    const pdPx = Math.sqrt(dx * dx + dy * dy);
+    
     return {
-      pixelPerMm: (relativeFrameHeight * imageDims.height) / frameHeightMm,
+      pixelPerMm: pixelsPerMm,
       leftPupilHeightMm: leftHeightUnits / unitsPerMm,
-      rightPupilHeightMm: rightHeightUnits / unitsPerMm
+      rightPupilHeightMm: rightHeightUnits / unitsPerMm,
+      pupilDistanceMm: pdPx / pixelsPerMm
     };
 
   }, [measurements, frameHeightMm, imageDims, imageSrc]);

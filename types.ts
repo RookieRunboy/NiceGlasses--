@@ -1,3 +1,4 @@
+
 export interface Point {
   x: number;
   y: number;
@@ -15,6 +16,7 @@ export interface CalculationResult {
   pixelPerMm: number;
   leftPupilHeightMm: number;
   rightPupilHeightMm: number;
+  pupilDistanceMm: number;
 }
 
 export interface ImageDimensions {
@@ -30,4 +32,5 @@ export interface HistoryRecord {
   leftPupilHeightMm: number;
   rightPupilHeightMm: number;
   frameHeightMm: number;
+  pupilDistanceMm: number;
 }

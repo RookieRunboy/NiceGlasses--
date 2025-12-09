@@ -1,5 +1,6 @@
+
 import React, { useRef, useState } from 'react';
-import { Upload, Sparkles, Ruler, Info, RotateCw, Save, History, Trash2, Calendar, User } from 'lucide-react';
+import { Upload, Sparkles, Ruler, Info, RotateCw, Save, History, Trash2, Calendar, User, Eye } from 'lucide-react';
 import { Measurements, CalculationResult, HistoryRecord } from '../types';
 import { detectLandmarks } from '../services/geminiService';
 
@@ -94,7 +95,7 @@ const Sidebar: React.FC<Props> = ({
           </div>
           OptiMeasure AI
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Professional Pupil Height Tool</p>
+        <p className="text-slate-500 text-sm mt-1">Pupil Height & PD Tool</p>
       </div>
 
       {/* Tabs */}
@@ -246,14 +247,20 @@ const Sidebar: React.FC<Props> = ({
                              </div>
                              <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
                                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                                     <span className="text-xs text-slate-400 block">Right (OD)</span>
+                                     <span className="text-xs text-slate-400 block">Right PH</span>
                                      <span className="font-bold text-slate-700">{record.rightPupilHeightMm.toFixed(1)} mm</span>
                                  </div>
                                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                                     <span className="text-xs text-slate-400 block">Left (OS)</span>
+                                     <span className="text-xs text-slate-400 block">Left PH</span>
                                      <span className="font-bold text-slate-700">{record.leftPupilHeightMm.toFixed(1)} mm</span>
                                  </div>
                              </div>
+                             {record.pupilDistanceMm && (
+                                <div className="mt-2 bg-indigo-50 p-2 rounded border border-indigo-100 flex justify-between items-center">
+                                    <span className="text-xs text-indigo-400 font-medium">Binocular PD</span>
+                                    <span className="font-bold text-indigo-700 text-sm">{record.pupilDistanceMm.toFixed(1)} mm</span>
+                                </div>
+                             )}
                              <div className="text-[10px] text-slate-400 mt-2 text-right">
                                  Frame Ref: {record.frameHeightMm}mm
                              </div>
@@ -271,13 +278,22 @@ const Sidebar: React.FC<Props> = ({
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Results</h3>
             {calculation && frameHeightMm > 0 ? (
                 <div className="space-y-4">
+                    {/* Binocular PD */}
+                    <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                         <div className="flex items-center gap-2">
+                            <Eye size={16} className="text-indigo-400"/>
+                            <span className="text-slate-300 text-xs font-medium uppercase">Pupil Distance (PD)</span>
+                         </div>
+                         <div className="text-xl font-bold text-indigo-400">{calculation.pupilDistanceMm.toFixed(1)} <span className="text-sm text-slate-500">mm</span></div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
-                            <div className="text-slate-400 text-xs mb-1">Right Eye (OD)</div>
+                            <div className="text-slate-400 text-xs mb-1">Right PH (OD)</div>
                             <div className="text-2xl font-bold text-yellow-400">{calculation.rightPupilHeightMm.toFixed(1)} <span className="text-sm text-slate-500">mm</span></div>
                         </div>
                         <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
-                            <div className="text-slate-400 text-xs mb-1">Left Eye (OS)</div>
+                            <div className="text-slate-400 text-xs mb-1">Left PH (OS)</div>
                             <div className="text-2xl font-bold text-green-400">{calculation.leftPupilHeightMm.toFixed(1)} <span className="text-sm text-slate-500">mm</span></div>
                         </div>
                     </div>
